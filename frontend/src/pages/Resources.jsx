@@ -1,5 +1,7 @@
 
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 import api from "../services/api";
 import "./Resources.css";
 
@@ -11,6 +13,12 @@ function Resources() {
     const [resourceType, setResourceType] = useState("");
     const [academicYear, setAcademicYear] = useState("");
     const [subject, setSubject] = useState("");
+
+    const navigate = useNavigate();
+
+    const token = localStorage.getItem("token");
+    const user = token ? jwtDecode(token) : null;
+    const currentUserId = user?.user_id;
 
     async function getResources() {
         try {
@@ -52,12 +60,35 @@ function Resources() {
             link.download = fileName;
 
             document.body.appendChild(link);
-
             link.click();
-
             link.remove();
 
             window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.log(error.response?.data);
+        }
+    }
+
+    async function deleteResource(id) {
+        const confirmDelete = window.confirm(
+            "Are you sure you want to delete this resource?"
+        );
+
+        if (!confirmDelete) {
+            return;
+        }
+
+        try {
+            await api.delete(
+                `/resource/deleteResource/${id}`
+            );
+
+            setResources((previousResources) =>
+                previousResources.filter(
+                    (resource) => resource._id !== id
+                )
+            );
+
         } catch (error) {
             console.log(error.response?.data);
         }
@@ -118,11 +149,13 @@ function Resources() {
                 >
                     <option value="">All Semesters</option>
 
-                    {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
-                        <option key={sem} value={sem}>
-                            Semester {sem}
-                        </option>
-                    ))}
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map(
+                        (sem) => (
+                            <option key={sem} value={sem}>
+                                Semester {sem}
+                            </option>
+                        )
+                    )}
                 </select>
 
                 <select
@@ -193,9 +226,7 @@ function Resources() {
                             </p>
 
                             <div className="resource-details">
-                                <span>
-                                    {resource.department}
-                                </span>
+                                <span>{resource.department}</span>
 
                                 <span>
                                     Semester {resource.semester}
@@ -236,6 +267,31 @@ function Resources() {
                                 >
                                     Download
                                 </button>
+
+                                {resource.uploadedBy?._id === currentUserId && (
+                                    <>
+                                        <button
+                                            onClick={() =>
+                                                navigate(
+                                                    `/edit-resource/${resource._id}`
+                                                )
+                                            }
+                                        >
+                                            Edit
+                                        </button>
+
+                                        <button
+                                            className="delete-button"
+                                            onClick={() =>
+                                                deleteResource(
+                                                    resource._id
+                                                )
+                                            }
+                                        >
+                                            Delete
+                                        </button>
+                                    </>
+                                )}
 
                             </div>
                         </div>

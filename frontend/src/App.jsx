@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Resources from "./pages/Resources";
 import UploadResource from "./pages/UploadResource";
+import EditResource from "./pages/EditResource";
 
 function App() {
     return (
@@ -35,6 +36,14 @@ function App() {
                     element={
                         <ProtectedRoute>
                             <UploadResource />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/edit-resource/:id"
+                    element={
+                        <ProtectedRoute>
+                            <EditResource />
                         </ProtectedRoute>
                     }
                 />
